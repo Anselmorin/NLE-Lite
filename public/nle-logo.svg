@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- NLE Monogram: N flows into L which is the E's spine -->
+  <g fill="none" stroke="white" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
+    <!-- N left vertical -->
+    <line x1="30" y1="30" x2="30" y2="130" />
+    <!-- N diagonal -->
+    <line x1="30" y1="30" x2="110" y2="130" />
+    <!-- N right vertical / L vertical / E spine — extends down -->
+    <line x1="110" y1="30" x2="110" y2="170" />
+    <!-- E top bar -->
+    <line x1="110" y1="30" x2="170" y2="30" />
+    <!-- E middle bar -->
+    <line x1="110" y1="100" x2="170" y2="100" />
+    <!-- E bottom bar / L bottom -->
+    <line x1="110" y1="170" x2="170" y2="170" />
+  </g>
+</svg>

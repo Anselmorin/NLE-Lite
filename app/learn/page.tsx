@@ -7,7 +7,7 @@ import { startBinauralBeats, stopBinauralBeats, speakSpanish } from "@/lib/audio
 import { getProgress, acceptDisclaimer, addSession } from "@/lib/storage";
 
 type Phase = "setup" | "disclaimer" | "running" | "microbreak" | "wellness" | "complete";
-type DisplayPhase = "spanish" | "english" | "example";
+type DisplayPhase = "spanish" | "english" | "both" | "example";
 
 const MAX_SESSION_SECONDS = 15 * 60; // 15 minutes
 const MICROBREAK_INTERVAL = 5 * 60; // 5 minutes
@@ -108,19 +108,31 @@ export default function LearnPage() {
     return () => clearInterval(interval);
   }, [phase]);
 
-  // Word cycling
+  // Word cycling — shows words in learning batches of 5
+  // Each word gets: spanish (with audio) → english → both together → next word
+  // After every 5 words, reviews all 5 before moving on
+  const batchRef = useRef(0);
+  const batchPhaseRef = useRef<'learn' | 'review'>('learn');
+  const reviewIndexRef = useRef(0);
+
   const startWordCycle = useCallback(() => {
     if (wordTimerRef.current) clearInterval(wordTimerRef.current);
 
     const clampedSpeed = Math.min(speed, MAX_SPEED);
-    // Each word goes through 3 phases: spanish, english, example
-    const phaseMs = 1000 / clampedSpeed;
+    // Slower pacing — give time to actually process each word
+    // At speed 2: each phase shows for 1.5 sec. At speed 8: 375ms
+    const phaseMs = 3000 / clampedSpeed;
 
     let phaseIndex = 0;
-    const phases: DisplayPhase[] = ["spanish", "english", "example"];
+    // Learning sequence: spanish → both (spanish + english) → example → brief pause
+    const learnPhases: DisplayPhase[] = ["spanish", "both", "example"];
+    // Review sequence: just spanish → both (faster recall test)
+    const reviewPhases: DisplayPhase[] = ["spanish", "both"];
 
     wordTimerRef.current = setInterval(() => {
-      const currentPhase = phases[phaseIndex % 3];
+      const isReview = batchPhaseRef.current === 'review';
+      const phases = isReview ? reviewPhases : learnPhases;
+      const currentPhase = phases[phaseIndex % phases.length];
       setDisplayPhase(currentPhase);
 
       if (currentPhase === "spanish") {
@@ -128,12 +140,41 @@ export default function LearnPage() {
       }
 
       phaseIndex++;
-      if (phaseIndex % 3 === 0) {
-        setCurrentIndex(prev => {
-          const next = prev + 1;
-          if (next >= words.length) return 0; // loop
-          return next;
-        });
+      if (phaseIndex % phases.length === 0) {
+        if (isReview) {
+          // Move through review batch
+          reviewIndexRef.current++;
+          const batchStart = batchRef.current * 5;
+          const batchEnd = Math.min(batchStart + 5, words.length);
+          if (reviewIndexRef.current >= (batchEnd - batchStart)) {
+            // Review done — next batch
+            batchRef.current++;
+            batchPhaseRef.current = 'learn';
+            reviewIndexRef.current = 0;
+            const nextStart = batchRef.current * 5;
+            if (nextStart >= words.length) {
+              batchRef.current = 0; // loop back
+            }
+            setCurrentIndex(batchRef.current * 5);
+          } else {
+            setCurrentIndex(batchStart + reviewIndexRef.current);
+          }
+        } else {
+          // Move to next word in learning batch
+          const batchStart = batchRef.current * 5;
+          const batchEnd = Math.min(batchStart + 5, words.length);
+          setCurrentIndex(prev => {
+            const next = prev + 1;
+            if (next >= batchEnd) {
+              // Batch complete — start review
+              batchPhaseRef.current = 'review';
+              reviewIndexRef.current = 0;
+              phaseIndex = 0;
+              return batchStart; // go back to start of batch for review
+            }
+            return next;
+          });
+        }
       }
     }, phaseMs);
   }, [speed, words.length]);
@@ -302,7 +343,7 @@ export default function LearnPage() {
           {/* Toggles */}
           <div className="space-y-3 mb-8">
             <label className="flex items-center justify-between cursor-pointer">
-              <span className="text-sm">Binaural Beats (6 Hz theta)</span>
+              <span className="text-sm">Binaural Beats (6 Hz theta) <span className="text-xs text-[var(--nle-muted)]">🎧 headphones required</span></span>
               <button
                 onClick={() => setBinauralOn(!binauralOn)}
                 className={`w-12 h-6 rounded-full transition-colors ${binauralOn ? 'bg-blue-500' : 'bg-gray-600'}`}
@@ -458,6 +499,19 @@ export default function LearnPage() {
                 </p>
                 <p className="text-sm text-[var(--nle-muted)] mt-2">
                   {currentWord.pos}
+                </p>
+              </div>
+            )}
+            {displayPhase === "both" && (
+              <div>
+                <p className="rsvp-word" style={{ color: POS_COLORS[currentWord.pos] }}>
+                  {currentWord.spanish}
+                </p>
+                <p className="text-2xl sm:text-3xl text-white/70 mt-3">
+                  {currentWord.english}
+                </p>
+                <p className="text-sm text-[var(--nle-muted)] mt-2 font-mono">
+                  /{currentWord.phonetic}/
                 </p>
               </div>
             )}

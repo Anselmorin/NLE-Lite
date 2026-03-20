@@ -10,7 +10,7 @@ export function startBinauralBeats() {
   // Create stereo merger
   const merger = audioCtx.createChannelMerger(2);
   gainNode = audioCtx.createGain();
-  gainNode.gain.value = 0.08; // soft background volume
+  gainNode.gain.value = 0.15; // audible but not distracting — NEEDS HEADPHONES
   
   // Left ear: 200 Hz
   leftOsc = audioCtx.createOscillator();
@@ -53,7 +53,7 @@ export function speakSpanish(text: string): Promise<void> {
     
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'es-ES';
-    utterance.rate = 0.85;
+    utterance.rate = 1.2; // faster to keep up with RSVP pacing
     utterance.pitch = 1;
     
     // Try to find a Spanish voice

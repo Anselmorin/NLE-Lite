@@ -75,7 +75,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="absolute bottom-4 text-center text-xs text-[var(--nle-muted)]">
-        Invented by Ansel Morin © 2026
+        © 2026 OnlineMars LLC
       </footer>
     </div>
   );

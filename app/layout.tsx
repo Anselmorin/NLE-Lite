@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "N·L·E — Neural Language Encoder",
-  description: "Learn any language in 30 minutes with RSVP + binaural beats. Invented by Ansel Morin.",
+  description: "Learn any language in 30 minutes with RSVP + binaural beats. By OnlineMars LLC.",
   icons: {
     icon: "/favicon.png",
     apple: "/apple-touch-icon.png",

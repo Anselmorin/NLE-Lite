@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { vocabulary, Word, POS_COLORS, getWordsByTiers } from "@/lib/vocabulary";
+import { vocabulary, Word, POS_COLORS, getWordsByCategories, categories } from "@/lib/vocabulary";
 import { startBinauralBeats, stopBinauralBeats, speakSpanish } from "@/lib/audio";
 import { getProgress, acceptDisclaimer, addSession } from "@/lib/storage";
 
@@ -18,7 +18,7 @@ const DEFAULT_SPEED = 4;
 export default function LearnPage() {
   const router = useRouter();
   const [phase, setPhase] = useState<Phase>("setup");
-  const [selectedTiers, setSelectedTiers] = useState<number[]>([1]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(["pronouns"]);
   const [speed, setSpeed] = useState(DEFAULT_SPEED);
   const [binauralOn, setBinauralOn] = useState(true);
   const [pronounceOn, setPronounceOn] = useState(true);
@@ -186,7 +186,7 @@ export default function LearnPage() {
   }, [currentIndex, displayPhase, phase, pronounceOn, words]);
 
   const handleStart = () => {
-    const selectedWords = getWordsByTiers(selectedTiers);
+    const selectedWords = getWordsByCategories(selectedCategories);
     // Shuffle
     const shuffled = [...selectedWords].sort(() => Math.random() - 0.5);
     setWords(shuffled);
@@ -226,7 +226,7 @@ export default function LearnPage() {
       quizScore: 0,
       quizTotal: 0,
       durationSeconds: elapsed,
-      tier: selectedTiers[0] || 1,
+      tier: 1,
       wellnessRating: rating,
     });
 
@@ -292,30 +292,33 @@ export default function LearnPage() {
             CONFIGURE ENCODING
           </h2>
 
-          {/* Tier selection */}
+          {/* Category selection */}
           <div className="mb-6">
-            <label className="text-sm text-[var(--nle-muted)] mb-2 block">Word Tiers</label>
-            <div className="grid grid-cols-2 gap-2">
-              {[1, 2, 3, 4].map(tier => (
-                <button
-                  key={tier}
-                  onClick={() => {
-                    setSelectedTiers(prev =>
-                      prev.includes(tier) ? prev.filter(t => t !== tier) : [...prev, tier]
-                    );
-                  }}
-                  className={`p-3 rounded-lg border text-sm font-medium transition-all ${
-                    selectedTiers.includes(tier)
-                      ? 'border-blue-500 bg-blue-500/10 text-blue-400'
-                      : 'border-[var(--nle-border)] text-[var(--nle-muted)] hover:border-blue-500/50'
-                  }`}
-                >
-                  Tier {tier}
-                  <span className="block text-xs opacity-60">
-                    {tier === 1 ? "Top 50" : tier === 2 ? "51-100" : tier === 3 ? "101-150" : "151-200"}
-                  </span>
-                </button>
-              ))}
+            <label className="text-sm text-[var(--nle-muted)] mb-2 block">Categories</label>
+            <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-1">
+              {categories.map(cat => {
+                const count = vocabulary.filter(w => w.category === cat.id).length;
+                return (
+                  <button
+                    key={cat.id}
+                    onClick={() => {
+                      setSelectedCategories(prev =>
+                        prev.includes(cat.id) ? prev.filter(c => c !== cat.id) : [...prev, cat.id]
+                      );
+                    }}
+                    className={`p-3 rounded-lg border text-sm font-medium transition-all text-left ${
+                      selectedCategories.includes(cat.id)
+                        ? 'border-blue-500 bg-blue-500/10 text-blue-400'
+                        : 'border-[var(--nle-border)] text-[var(--nle-muted)] hover:border-blue-500/50'
+                    }`}
+                  >
+                    <span className="text-base">{cat.emoji}</span> {cat.name}
+                    <span className="block text-xs opacity-60">
+                      {count} words · ~{cat.estTime} min
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -363,7 +366,7 @@ export default function LearnPage() {
 
           <button
             onClick={handleStart}
-            disabled={selectedTiers.length === 0}
+            disabled={selectedCategories.length === 0}
             className="btn-primary w-full text-lg py-4 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             ▶ BEGIN ENCODING

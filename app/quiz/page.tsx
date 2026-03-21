@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Word, vocabulary, POS_COLORS } from "@/lib/vocabulary";
-import { addSession, getProgress, markWordsLearned } from "@/lib/storage";
+import { addSession, getProgress, markWordsLearned, updateWordScore } from "@/lib/storage";
 
 // Extended decoy words grouped by first letter for same-letter decoy generation
 const DECOY_WORDS_BY_LETTER: Record<string, string[]> = {
@@ -130,7 +130,9 @@ export default function QuizPage() {
     setSelected(index);
     setShowResult(true);
     
-    if (index === questions[currentQ].correctIndex) {
+    const isCorrect = index === questions[currentQ].correctIndex;
+    updateWordScore(questions[currentQ].word.id, isCorrect);
+    if (isCorrect) {
       setScore(s => s + 1);
       setCorrectWordIds(prev => [...prev, questions[currentQ].word.id]);
     }
@@ -146,6 +148,7 @@ export default function QuizPage() {
     
     setTypingCorrect(isCorrect);
     setShowResult(true);
+    updateWordScore(questions[currentQ].word.id, isCorrect);
     if (isCorrect) {
       setScore(s => s + 1);
       setCorrectWordIds(prev => [...prev, questions[currentQ].word.id]);

@@ -1,14 +1,25 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getProgress, Progress } from "@/lib/storage";
+import { getProgress, Progress, getWordStats, getWordsForReview, getWeakWords, getWordScore } from "@/lib/storage";
+import { vocabulary } from "@/lib/vocabulary";
 import Link from "next/link";
 
 export default function DashboardPage() {
   const [progress, setProgress] = useState<Progress | null>(null);
+  const [wordStats, setWordStats] = useState({ total: 0, mastered: 0, learning: 0, new: 0 });
+  const [dueCount, setDueCount] = useState(0);
+  const [weakWords, setWeakWords] = useState<{ spanish: string; english: string; ease: number }[]>([]);
 
   useEffect(() => {
     setProgress(getProgress());
+    setWordStats(getWordStats());
+    setDueCount(getWordsForReview().length);
+    const weak = getWeakWords(5).map(w => {
+      const s = getWordScore(w.id);
+      return { spanish: w.spanish, english: w.english, ease: s.ease };
+    });
+    setWeakWords(weak);
   }, []);
 
   if (!progress) return <div className="min-h-screen flex items-center justify-center text-[var(--nle-muted)]">Loading...</div>;
@@ -75,6 +86,49 @@ export default function DashboardPage() {
         <div className="flex justify-between mt-2 text-xs text-[var(--nle-muted)]">
           <span>Tier 1</span><span>Tier 2</span><span>Tier 3</span><span>Tier 4</span>
         </div>
+      </div>
+
+      {/* Spaced Repetition Stats */}
+      <div className="panel border-glow p-5 mb-8">
+        <h3 className="text-sm font-bold text-white mb-4">🧠 Spaced Repetition</h3>
+        <div className="grid grid-cols-3 gap-4 mb-4">
+          <div className="text-center">
+            <p className="text-2xl font-bold text-green-400">{wordStats.mastered}</p>
+            <p className="text-xs text-[var(--nle-muted)]">Mastered</p>
+          </div>
+          <div className="text-center">
+            <p className="text-2xl font-bold text-yellow-400">{wordStats.learning}</p>
+            <p className="text-xs text-[var(--nle-muted)]">Learning</p>
+          </div>
+          <div className="text-center">
+            <p className="text-2xl font-bold text-[var(--nle-muted)]">{wordStats.new}</p>
+            <p className="text-xs text-[var(--nle-muted)]">New</p>
+          </div>
+        </div>
+        <div className="flex items-center justify-between p-3 rounded-lg bg-[var(--nle-surface)] mb-4">
+          <span className="text-sm text-[var(--nle-muted)]">📚 Due for review</span>
+          <span className={`text-lg font-bold ${dueCount > 0 ? 'text-purple-400' : 'text-green-400'}`}>
+            {dueCount > 0 ? dueCount : '✅ 0'}
+          </span>
+        </div>
+        {dueCount > 0 && (
+          <Link href="/learn" className="btn-primary w-full text-sm py-2 block text-center">
+            Review Now →
+          </Link>
+        )}
+        {weakWords.length > 0 && (
+          <div className="mt-4">
+            <p className="text-xs text-[var(--nle-muted)] mb-2">⚠️ Weakest Words</p>
+            <div className="space-y-1">
+              {weakWords.map((w, i) => (
+                <div key={i} className="flex justify-between text-sm py-1 border-b border-[var(--nle-border)] last:border-0">
+                  <span className="text-orange-400">{w.spanish}</span>
+                  <span className="text-[var(--nle-muted)]">{w.english} · ease {w.ease.toFixed(1)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Recent sessions */}

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { vocabulary, Word, POS_COLORS, getWordsByCategories, getWordsBySubcategory, categories } from "@/lib/vocabulary";
 import { startBinauralBeats, stopBinauralBeats, speakSpanish } from "@/lib/audio";
-import { getProgress, acceptDisclaimer, addSession } from "@/lib/storage";
+import { getProgress, acceptDisclaimer, addSession, getWordsForReview, getWeakWords, getWordStatus, getNextReviewTime, WordStatus } from "@/lib/storage";
 
 // ── EMOJI MAPPING for peripheral vision encoding ──
 const SPANISH_EMOJI: Record<string, string> = {
@@ -68,6 +68,9 @@ export default function LearnPage() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>(["pronouns"]);
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
   const [excludedSubcategories, setExcludedSubcategories] = useState<string[]>([]);
+  const [reviewMode, setReviewMode] = useState(false);
+  const [dueCount, setDueCount] = useState(0);
+  const [nextReviewIn, setNextReviewIn] = useState<string | null>(null);
   const [speed, setSpeed] = useState(DEFAULT_SPEED);
   const [binauralOn, setBinauralOn] = useState(true);
   const [pronounceOn, setPronounceOn] = useState(true);
@@ -82,16 +85,26 @@ export default function LearnPage() {
   const [nextBreakAt, setNextBreakAt] = useState(MICROBREAK_INTERVAL);
   const [wellnessRating, setWellnessRating] = useState(0);
   const [wordsShown, setWordsShown] = useState(0);
+  const [wordStatuses, setWordStatuses] = useState<Map<number, WordStatus>>(new Map());
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const wordTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const sessionElapsed = useRef(0);
 
-  // Check disclaimer
+  // Check disclaimer & compute review stats
   useEffect(() => {
     const p = getProgress();
     if (!p.disclaimerAccepted) {
       setPhase("disclaimer");
+    }
+    const due = getWordsForReview();
+    setDueCount(due.length);
+    if (due.length === 0) {
+      const next = getNextReviewTime();
+      if (next) {
+        const hoursUntil = Math.max(1, Math.round((next - Date.now()) / (1000 * 60 * 60)));
+        setNextReviewIn(`${hoursUntil}h`);
+      }
     }
   }, []);
 
@@ -234,12 +247,61 @@ export default function LearnPage() {
     }
   }, [currentIndex, displayPhase, phase, pronounceOn, words]);
 
+  const handleStartReview = () => {
+    const due = getWordsForReview();
+    if (due.length === 0) return;
+    const statuses = new Map<number, WordStatus>();
+    due.forEach(w => statuses.set(w.id, getWordStatus(w.id)));
+    setWordStatuses(statuses);
+    setWords(due);
+    setCurrentIndex(0);
+    setDisplayPhase("spanish");
+    setTimeRemaining(MAX_SESSION_SECONDS);
+    sessionElapsed.current = 0;
+    setWordsShown(0);
+    setSessionStartTime(Date.now());
+    if (binauralOn) startBinauralBeats();
+    setPhase("running");
+    setTimeout(() => startWordCycle(), 100);
+  };
+
   const handleStart = () => {
+    if (reviewMode) { handleStartReview(); return; }
+
     const selectedWords = getWordsByCategories(selectedCategories).filter(
       w => !excludedSubcategories.includes(`${w.category}:${w.subcategory}`)
     );
-    // Shuffle
-    const shuffled = [...selectedWords].sort(() => Math.random() - 0.5);
+
+    // Smart ordering: review due → weak → new, mixed 60/40
+    const reviewDue = getWordsForReview(selectedCategories).filter(
+      w => !excludedSubcategories.includes(`${w.category}:${w.subcategory}`)
+    );
+    const weakWords = getWeakWords(50).filter(
+      w => selectedCategories.includes(w.category) && !excludedSubcategories.includes(`${w.category}:${w.subcategory}`)
+        && !reviewDue.find(r => r.id === w.id)
+    );
+    const seenIds = new Set([...reviewDue.map(w => w.id), ...weakWords.map(w => w.id)]);
+    const newWords = selectedWords.filter(w => !seenIds.has(w.id));
+
+    // Mix: 60% review/weak, 40% new
+    const priorityPool = [...reviewDue, ...weakWords].sort(() => Math.random() - 0.5);
+    const newPool = [...newWords].sort(() => Math.random() - 0.5);
+
+    const mixed: Word[] = [];
+    let pi = 0, ni = 0;
+    while (pi < priorityPool.length || ni < newPool.length) {
+      // Add ~3 priority then ~2 new
+      for (let j = 0; j < 3 && pi < priorityPool.length; j++) mixed.push(priorityPool[pi++]);
+      for (let j = 0; j < 2 && ni < newPool.length; j++) mixed.push(newPool[ni++]);
+    }
+
+    const shuffled = mixed.length > 0 ? mixed : [...selectedWords].sort(() => Math.random() - 0.5);
+
+    // Build status map
+    const statuses = new Map<number, WordStatus>();
+    shuffled.forEach(w => statuses.set(w.id, getWordStatus(w.id)));
+    setWordStatuses(statuses);
+
     setWords(shuffled);
     setCurrentIndex(0);
     setDisplayPhase("spanish");
@@ -420,6 +482,26 @@ export default function LearnPage() {
             </div>
           </div>
 
+          {/* Review Mode */}
+          <div className="mb-6">
+            <button
+              onClick={() => setReviewMode(!reviewMode)}
+              className={`w-full p-4 rounded-lg border text-left transition-all ${
+                reviewMode
+                  ? 'border-purple-500 bg-purple-500/10 text-purple-400'
+                  : 'border-[var(--nle-border)] text-[var(--nle-muted)] hover:border-purple-500/50'
+              }`}
+            >
+              <span className="text-base">📚</span> Review Due Words
+              <span className="block text-xs mt-1">
+                {dueCount > 0
+                  ? <span className="text-purple-400">{dueCount} words due for review</span>
+                  : <span className="text-green-400">✅ All caught up!{nextReviewIn ? ` Next review in ${nextReviewIn}` : ''}</span>
+                }
+              </span>
+            </button>
+          </div>
+
           {/* Speed */}
           <div className="mb-6">
             <label className="text-sm text-[var(--nle-muted)] mb-2 flex justify-between">
@@ -464,10 +546,10 @@ export default function LearnPage() {
 
           <button
             onClick={handleStart}
-            disabled={selectedCategories.length === 0}
+            disabled={reviewMode ? dueCount === 0 : selectedCategories.length === 0}
             className="btn-primary w-full text-lg py-4 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            ▶ BEGIN ENCODING
+            {reviewMode ? '📚 START REVIEW' : '▶ BEGIN ENCODING'}
           </button>
           <p className="text-center text-xs text-[var(--nle-muted)] mt-3">
             Press ESC anytime to stop · 15 min max session
@@ -592,6 +674,13 @@ export default function LearnPage() {
         )}
         {currentWord && (
           <div className="text-center px-4 relative z-10">
+            {/* Word status indicator */}
+            {(() => {
+              const status = wordStatuses.get(currentWord.id) || 'new';
+              const label = status === 'review' ? '🔄 Review' : status === 'weak' ? '⚠️ Weak' : '🆕 New';
+              const color = status === 'review' ? 'text-blue-400' : status === 'weak' ? 'text-orange-400' : 'text-green-400';
+              return <p className={`text-xs ${color} mb-2 tracking-wider uppercase`}>{label}</p>;
+            })()}
             {displayPhase === "spanish" && (
               <div>
                 <p className="font-bold leading-tight" style={{ color: POS_COLORS[currentWord.pos], fontSize: 'clamp(2.5rem, 8vw, 5rem)' }}>

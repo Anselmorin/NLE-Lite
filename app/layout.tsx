@@ -4,6 +4,10 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "N·L·E — Neural Language Encoder",
   description: "Learn any language in 30 minutes with RSVP + binaural beats. Invented by Ansel Morin.",
+  icons: {
+    icon: "/favicon.png",
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -16,6 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <nav className="fixed top-0 left-0 right-0 z-40 border-b border-[var(--nle-border)] bg-[var(--nle-bg)]/80 backdrop-blur-md">
           <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
             <a href="/" className="flex items-center gap-2">
+              <img src="/nle-logo.png" alt="NLE" className="h-8 w-8 rounded" />
               <span className="text-lg font-bold tracking-[0.3em] glow-blue text-blue-400">N·L·E</span>
               <span className="text-[10px] text-[var(--nle-muted)] tracking-widest hidden sm:block">NEURAL LANGUAGE ENCODER</span>
             </a>

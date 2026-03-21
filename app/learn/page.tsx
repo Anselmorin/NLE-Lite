@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { vocabulary, Word, POS_COLORS, getWordsByCategories, categories } from "@/lib/vocabulary";
+import { vocabulary, Word, POS_COLORS, getWordsByCategories, getWordsBySubcategory, categories } from "@/lib/vocabulary";
 import { startBinauralBeats, stopBinauralBeats, speakSpanish } from "@/lib/audio";
 import { getProgress, acceptDisclaimer, addSession } from "@/lib/storage";
 
@@ -19,6 +19,8 @@ export default function LearnPage() {
   const router = useRouter();
   const [phase, setPhase] = useState<Phase>("setup");
   const [selectedCategories, setSelectedCategories] = useState<string[]>(["pronouns"]);
+  const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
+  const [excludedSubcategories, setExcludedSubcategories] = useState<string[]>([]);
   const [speed, setSpeed] = useState(DEFAULT_SPEED);
   const [binauralOn, setBinauralOn] = useState(true);
   const [pronounceOn, setPronounceOn] = useState(true);
@@ -186,7 +188,9 @@ export default function LearnPage() {
   }, [currentIndex, displayPhase, phase, pronounceOn, words]);
 
   const handleStart = () => {
-    const selectedWords = getWordsByCategories(selectedCategories);
+    const selectedWords = getWordsByCategories(selectedCategories).filter(
+      w => !excludedSubcategories.includes(`${w.category}:${w.subcategory}`)
+    );
     // Shuffle
     const shuffled = [...selectedWords].sort(() => Math.random() - 0.5);
     setWords(shuffled);
@@ -295,28 +299,75 @@ export default function LearnPage() {
           {/* Category selection */}
           <div className="mb-6">
             <label className="text-sm text-[var(--nle-muted)] mb-2 block">Categories</label>
-            <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-1">
+            <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
               {categories.map(cat => {
-                const count = vocabulary.filter(w => w.category === cat.id).length;
+                const isSelected = selectedCategories.includes(cat.id);
+                const isExpanded = expandedCategories.includes(cat.id);
+                const catWords = vocabulary.filter(w => w.category === cat.id);
+                const activeCount = catWords.filter(w => !excludedSubcategories.includes(`${cat.id}:${w.subcategory}`)).length;
                 return (
-                  <button
-                    key={cat.id}
-                    onClick={() => {
-                      setSelectedCategories(prev =>
-                        prev.includes(cat.id) ? prev.filter(c => c !== cat.id) : [...prev, cat.id]
-                      );
-                    }}
-                    className={`p-3 rounded-lg border text-sm font-medium transition-all text-left ${
-                      selectedCategories.includes(cat.id)
-                        ? 'border-blue-500 bg-blue-500/10 text-blue-400'
-                        : 'border-[var(--nle-border)] text-[var(--nle-muted)] hover:border-blue-500/50'
-                    }`}
-                  >
-                    <span className="text-base">{cat.emoji}</span> {cat.name}
-                    <span className="block text-xs opacity-60">
-                      {count} words · ~{cat.estTime} min
-                    </span>
-                  </button>
+                  <div key={cat.id}>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => {
+                          if (isSelected) {
+                            setSelectedCategories(prev => prev.filter(c => c !== cat.id));
+                            setExcludedSubcategories(prev => prev.filter(k => !k.startsWith(`${cat.id}:`)));
+                          } else {
+                            setSelectedCategories(prev => [...prev, cat.id]);
+                          }
+                        }}
+                        className={`flex-1 p-3 rounded-lg border text-sm font-medium transition-all text-left ${
+                          isSelected
+                            ? 'border-blue-500 bg-blue-500/10 text-blue-400'
+                            : 'border-[var(--nle-border)] text-[var(--nle-muted)] hover:border-blue-500/50'
+                        }`}
+                      >
+                        <span className="text-base">{cat.emoji}</span> {cat.name}
+                        <span className="block text-xs opacity-60">
+                          {isSelected ? activeCount : catWords.length} words · ~{cat.estTime} min
+                        </span>
+                      </button>
+                      {isSelected && cat.subcategories.length > 0 && (
+                        <button
+                          onClick={() => setExpandedCategories(prev =>
+                            prev.includes(cat.id) ? prev.filter(c => c !== cat.id) : [...prev, cat.id]
+                          )}
+                          className="p-2 text-[var(--nle-muted)] hover:text-white transition-colors text-xs"
+                          title="Toggle subcategories"
+                        >
+                          {isExpanded ? '▼' : '▶'}
+                        </button>
+                      )}
+                    </div>
+                    {isSelected && isExpanded && (
+                      <div className="ml-4 mt-1 space-y-1 mb-1">
+                        {cat.subcategories.map(sub => {
+                          const subKey = `${cat.id}:${sub.id}`;
+                          const isExcluded = excludedSubcategories.includes(subKey);
+                          const subCount = vocabulary.filter(w => w.category === cat.id && w.subcategory === sub.id).length;
+                          return (
+                            <label key={sub.id} className="flex items-center gap-2 cursor-pointer py-1 px-2 rounded hover:bg-white/5">
+                              <input
+                                type="checkbox"
+                                checked={!isExcluded}
+                                onChange={() => {
+                                  setExcludedSubcategories(prev =>
+                                    isExcluded ? prev.filter(k => k !== subKey) : [...prev, subKey]
+                                  );
+                                }}
+                                className="accent-blue-500 w-3.5 h-3.5"
+                              />
+                              <span className={`text-xs ${isExcluded ? 'text-[var(--nle-muted)] line-through' : 'text-white/80'}`}>
+                                {sub.name}
+                              </span>
+                              <span className="text-xs text-[var(--nle-muted)] ml-auto">{subCount}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                 );
               })}
             </div>

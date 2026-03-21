@@ -107,7 +107,7 @@ export default function SafetyPage() {
       </div>
 
       <footer className="text-center text-xs text-[var(--nle-muted)] mt-8 pb-8">
-        Questions? © 2026 OnlineMars LLC
+        Questions? © 2026 Online Mars LLC
       </footer>
     </div>
   );

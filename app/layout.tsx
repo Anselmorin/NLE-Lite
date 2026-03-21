@@ -20,9 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <nav className="fixed top-0 left-0 right-0 z-40 border-b border-[var(--nle-border)] bg-[var(--nle-bg)]/80 backdrop-blur-md">
           <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
             <a href="/" className="flex items-center gap-2">
-              <img src="/nle-logo.png" alt="NLE" className="h-8 w-8 rounded" />
-              <span className="text-lg font-bold tracking-[0.3em] glow-blue text-blue-400">N·L·E</span>
-              <span className="text-[10px] text-[var(--nle-muted)] tracking-widest hidden sm:block">NEURAL LANGUAGE ENCODER</span>
+              <img src="/nle-logo.png" alt="NLE" className="h-8 rounded" />
             </a>
             <div className="flex items-center gap-4 text-sm">
               <a href="/learn" className="text-[var(--nle-muted)] hover:text-blue-400 transition-colors">Learn</a>

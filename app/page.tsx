@@ -21,10 +21,8 @@ export default function Home() {
       {/* Hero */}
       <div className="text-center relative z-10 max-w-2xl">
         {/* Logo */}
-        <div className="mb-8">
-          <h1 className="text-6xl sm:text-8xl font-black tracking-[0.4em] glow-blue text-blue-400 mb-2">
-            N·L·E
-          </h1>
+        <div className="mb-8 flex flex-col items-center">
+          <img src="/nle-logo.png" alt="NLE" className="h-24 sm:h-32 mb-4" />
           <p className="text-sm sm:text-base tracking-[0.5em] text-[var(--nle-muted)] uppercase">
             Neural Language Encoder
           </p>

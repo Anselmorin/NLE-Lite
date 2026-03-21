@@ -12,8 +12,8 @@ type DisplayPhase = "spanish" | "english" | "both" | "example";
 const MAX_SESSION_SECONDS = 15 * 60; // 15 minutes
 const MICROBREAK_INTERVAL = 5 * 60; // 5 minutes
 const MICROBREAK_DURATION = 5; // seconds
-const MAX_SPEED = 8;
-const DEFAULT_SPEED = 2;
+const MAX_SPEED = 12;
+const DEFAULT_SPEED = 4;
 
 export default function LearnPage() {
   const router = useRouter();
@@ -119,13 +119,12 @@ export default function LearnPage() {
     if (wordTimerRef.current) clearInterval(wordTimerRef.current);
 
     const clampedSpeed = Math.min(speed, MAX_SPEED);
-    // Slower pacing — give time to actually process each word
-    // At speed 2: each phase shows for 1.5 sec. At speed 8: 375ms
-    const phaseMs = 3000 / clampedSpeed;
+    // At speed 4 (default): 500ms per phase. At speed 12: ~165ms
+    const phaseMs = 2000 / clampedSpeed;
 
     let phaseIndex = 0;
-    // Learning sequence: spanish → both (spanish + english) → example → brief pause
-    const learnPhases: DisplayPhase[] = ["spanish", "both", "example"];
+    // Learning sequence: spanish → both (quick pair, no example — keeps it fast)
+    const learnPhases: DisplayPhase[] = ["spanish", "both"];
     // Review sequence: just spanish → both (faster recall test)
     const reviewPhases: DisplayPhase[] = ["spanish", "both"];
 
@@ -144,25 +143,25 @@ export default function LearnPage() {
         if (isReview) {
           // Move through review batch
           reviewIndexRef.current++;
-          const batchStart = batchRef.current * 5;
-          const batchEnd = Math.min(batchStart + 5, words.length);
+          const batchStart = batchRef.current * 10;
+          const batchEnd = Math.min(batchStart + 10, words.length);
           if (reviewIndexRef.current >= (batchEnd - batchStart)) {
             // Review done — next batch
             batchRef.current++;
             batchPhaseRef.current = 'learn';
             reviewIndexRef.current = 0;
-            const nextStart = batchRef.current * 5;
+            const nextStart = batchRef.current * 10;
             if (nextStart >= words.length) {
               batchRef.current = 0; // loop back
             }
-            setCurrentIndex(batchRef.current * 5);
+            setCurrentIndex(batchRef.current * 10);
           } else {
             setCurrentIndex(batchStart + reviewIndexRef.current);
           }
         } else {
           // Move to next word in learning batch
-          const batchStart = batchRef.current * 5;
-          const batchEnd = Math.min(batchStart + 5, words.length);
+          const batchStart = batchRef.current * 10;
+          const batchEnd = Math.min(batchStart + 10, words.length);
           setCurrentIndex(prev => {
             const next = prev + 1;
             if (next >= batchEnd) {
@@ -336,7 +335,7 @@ export default function LearnPage() {
             />
             <div className="flex justify-between text-xs text-[var(--nle-muted)] mt-1">
               <span>Slow</span>
-              <span>Fast (max {MAX_SPEED})</span>
+              <span>Fast (max 12)</span>
             </div>
           </div>
 

@@ -6,6 +6,53 @@ import { vocabulary, Word, POS_COLORS, getWordsByCategories, getWordsBySubcatego
 import { startBinauralBeats, stopBinauralBeats, speakSpanish } from "@/lib/audio";
 import { getProgress, acceptDisclaimer, addSession } from "@/lib/storage";
 
+// ── EMOJI MAPPING for peripheral vision encoding ──
+const SPANISH_EMOJI: Record<string, string> = {
+  // Animals
+  perro: '🐕', gato: '🐱', pollo: '🐔', pescado: '🐟',
+  // Nature / Sky
+  sol: '☀️', luna: '🌙', estrella: '⭐', nube: '☁️', lluvia: '🌧️', viento: '💨',
+  árbol: '🌳', flor: '🌺', montaña: '⛰️', bosque: '🌲', playa: '🏖️',
+  mar: '🌊', río: '🏞️', lago: '💧', tierra: '🌍', cielo: '🌤️',
+  // Food & Drink
+  agua: '💧', café: '☕', cerveza: '🍺', jugo: '🧃', leche: '🥛',
+  manzana: '🍎', fruta: '🍇', carne: '🥩', hamburguesa: '🍔',
+  pan: '🍞', arroz: '🍚', ensalada: '🥗', sopa: '🍜', huevo: '🥚',
+  queso: '🧀', helado: '🍦', postre: '🍰', sal: '🧂', azúcar: '🍬',
+  comida: '🍽️',
+  // Family & People
+  padre: '👨', madre: '👩', hermano: '👦', hermana: '👧',
+  hijo: '👦', hija: '👧', bebé: '👶', familia: '👨‍👩‍👧',
+  abuelo: '👴', abuela: '👵', tío: '👨', tía: '👩', primo: '🧑',
+  mujer: '👩', hombre: '👨', amigo: '🤝', niño: '👦',
+  // House
+  casa: '🏠', cocina: '🍳', baño: '🚿', jardín: '🌻',
+  mesa: '🪑', silla: '🪑', cama: '🛏️', puerta: '🚪', ventana: '🪟',
+  escalera: '🪜', pared: '🧱',
+  // Clothes
+  camisa: '👔', chaqueta: '🧥', vestido: '👗', ropa: '👚',
+  pantalón: '👖', falda: '👗', sombrero: '🎩', zapato: '👟', calcetín: '🧦', bufanda: '🧣',
+  // Body
+  cabeza: '🗣️', ojo: '👁️', boca: '👄', nariz: '👃', oreja: '👂',
+  mano: '✋', brazo: '💪', pierna: '🦵', pie: '🦶', dedo: '☝️',
+  corazón: '❤️', cuerpo: '🧍',
+  // School
+  libro: '📖', lápiz: '✏️', papel: '📄', cuaderno: '📓', mochila: '🎒',
+  escuela: '🏫', clase: '🏫', biblioteca: '📚', música: '🎵', arte: '🎨',
+  maestro: '👨‍🏫', maestra: '👩‍🏫', estudiante: '🧑‍🎓',
+  examen: '📝', tarea: '📝', proyecto: '📋', diploma: '🎓',
+  tijeras: '✂️', regla: '📏', pegamento: '🧴', marcador: '🖍️', pluma: '🖊️',
+  // Daily life
+  calle: '🛣️', ciudad: '🏙️', tienda: '🏪', banco: '🏦', hospital: '🏥',
+  teléfono: '📱', computadora: '💻', correo: '📧', carro: '🚗',
+  dinero: '💰', llave: '🔑', bolsa: '👜',
+  // Time
+  día: '🌅', noche: '🌙', mañana: '🌅', hora: '🕐', semana: '📅',
+  // Actions (verbs with strong visual)
+  dormir: '😴', comer: '🍽️', nadar: '🏊', correr: '🏃', bailar: '💃',
+  cantar: '🎤', cocinar: '👨‍🍳', viajar: '✈️', jugar: '⚽', limpiar: '🧹',
+};
+
 type Phase = "setup" | "disclaimer" | "running" | "microbreak" | "wellness" | "complete";
 type DisplayPhase = "spanish" | "english" | "both" | "example";
 
@@ -532,44 +579,54 @@ export default function LearnPage() {
       </div>
 
       {/* RSVP Display */}
-      <div className="flex-1 flex items-center justify-center pt-28 pb-20">
+      <div className="flex-1 flex items-center justify-center pt-28 pb-20 relative overflow-hidden">
+        {/* Peripheral vision emoji */}
+        {currentWord && SPANISH_EMOJI[currentWord.spanish] && (
+          <div
+            className="absolute inset-0 flex items-center justify-center pointer-events-none select-none"
+            style={{ fontSize: '40vh', opacity: 0.1, filter: 'blur(3px)', lineHeight: 1 }}
+            aria-hidden="true"
+          >
+            {SPANISH_EMOJI[currentWord.spanish]}
+          </div>
+        )}
         {currentWord && (
-          <div className="text-center px-4">
+          <div className="text-center px-4 relative z-10">
             {displayPhase === "spanish" && (
               <div>
-                <p className="rsvp-word" style={{ color: POS_COLORS[currentWord.pos] }}>
+                <p className="font-bold leading-tight" style={{ color: POS_COLORS[currentWord.pos], fontSize: 'clamp(2.5rem, 8vw, 5rem)' }}>
                   {currentWord.spanish}
                 </p>
-                <p className="text-sm text-[var(--nle-muted)] mt-2 font-mono">
+                <p className="text-[clamp(0.75rem,2vw,0.875rem)] text-[var(--nle-muted)] mt-2 font-mono">
                   /{currentWord.phonetic}/
                 </p>
               </div>
             )}
             {displayPhase === "english" && (
               <div>
-                <p className="rsvp-word text-white/90">
+                <p className="font-bold text-white/90 leading-tight" style={{ fontSize: 'clamp(2.5rem, 8vw, 5rem)' }}>
                   {currentWord.english}
                 </p>
-                <p className="text-sm text-[var(--nle-muted)] mt-2">
+                <p className="text-[clamp(0.75rem,2vw,0.875rem)] text-[var(--nle-muted)] mt-2">
                   {currentWord.pos}
                 </p>
               </div>
             )}
             {displayPhase === "both" && (
               <div>
-                <p className="rsvp-word" style={{ color: POS_COLORS[currentWord.pos] }}>
+                <p className="font-bold leading-tight" style={{ color: POS_COLORS[currentWord.pos], fontSize: 'clamp(2.5rem, 8vw, 5rem)' }}>
                   {currentWord.spanish}
                 </p>
-                <p className="text-2xl sm:text-3xl text-white/70 mt-3">
+                <p className="text-white/70 mt-3 font-semibold" style={{ fontSize: 'clamp(1.25rem, 4vw, 2rem)' }}>
                   {currentWord.english}
                 </p>
-                <p className="text-sm text-[var(--nle-muted)] mt-2 font-mono">
+                <p className="text-[clamp(0.75rem,2vw,0.875rem)] text-[var(--nle-muted)] mt-2 font-mono">
                   /{currentWord.phonetic}/
                 </p>
               </div>
             )}
             {displayPhase === "example" && (
-              <p className="text-xl sm:text-2xl text-[var(--nle-muted)] italic max-w-lg">
+              <p className="text-[var(--nle-muted)] italic max-w-lg" style={{ fontSize: 'clamp(1.125rem, 3.5vw, 1.5rem)' }}>
                 &ldquo;{currentWord.example}&rdquo;
               </p>
             )}

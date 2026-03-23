@@ -32,8 +32,11 @@ export default function Home() {
         <p className="text-xl sm:text-2xl font-semibold text-white/90 mb-2">
           Accelerated language learning through neural encoding
         </p>
+        <div className="inline-block px-3 py-1 rounded-full border border-yellow-500/30 bg-yellow-500/10 text-yellow-400 text-xs font-medium tracking-wider mb-4">
+          BETA
+        </div>
         <p className="text-xs text-[var(--nle-muted)] mb-10">
-          RSVP + binaural beats · experimental learning tool
+          RSVP + binaural beats · experimental learning tool · currently in beta
         </p>
 
         {/* Encoding visual */}

@@ -30,10 +30,10 @@ export default function Home() {
 
         {/* Tagline */}
         <p className="text-xl sm:text-2xl font-semibold text-white/90 mb-2">
-          Learn any language in 30 minutes
+          Accelerated language learning through neural encoding
         </p>
         <p className="text-xs text-[var(--nle-muted)] mb-10">
-          *results may vary · powered by RSVP + binaural beats
+          RSVP + binaural beats · experimental learning tool
         </p>
 
         {/* Encoding visual */}

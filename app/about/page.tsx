@@ -15,7 +15,7 @@ export default function AboutPage() {
           <p className="text-sm text-[var(--nle-muted)] leading-relaxed">
             Learning a language traditionally takes <span className="text-white font-medium">600–2,200+ hours</span> of 
             study. Millions of people need new languages for work, travel, and communication but don&apos;t 
-            have years to dedicate. What if we could compress that timeline dramatically?
+            have years to dedicate. What if we could accelerate that process significantly?
           </p>
         </section>
 
@@ -123,7 +123,7 @@ export default function AboutPage() {
           <p className="text-sm text-[var(--nle-muted)] leading-relaxed mb-3">
             This web app is a <span className="text-white">proof of concept</span>. The full NLE vision is a 
             hardware device — a precision visor with high-refresh micro-displays, eye tracking, and EEG 
-            sensors that can encode an entire language in a single 30-minute session.
+            sensors that could dramatically accelerate the encoding process beyond what&apos;s possible on a screen.
           </p>
           <p className="text-sm text-[var(--nle-muted)] leading-relaxed">
             The web version demonstrates the core principles: RSVP encoding + binaural entrainment + 

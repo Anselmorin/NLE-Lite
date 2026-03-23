@@ -40,18 +40,18 @@ export default function Home() {
         </p>
 
         {/* Encoding visual */}
-        <div className="panel border-glow p-6 mb-10 text-left font-mono text-sm">
+        <div className="panel border-glow p-6 mb-10 text-left font-mono text-sm max-w-md mx-auto overflow-hidden">
           <div className="flex items-center gap-2 mb-3">
             <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
             <span className="text-green-400 text-xs">SYSTEM READY</span>
           </div>
-          <div className="space-y-2 text-[var(--nle-muted)]">
-            <p>╔══════════════════════════════════════╗</p>
-            <p>║ <span className="text-blue-400">RSVP ENGINE</span>    ▓▓▓▓▓▓▓▓░░ <span className="text-green-400">ONLINE</span>  ║</p>
-            <p>║ <span className="text-purple-400">THETA WAVES</span>   ▓▓▓▓▓▓▓▓░░ <span className="text-green-400">6 Hz</span>    ║</p>
-            <p>║ <span className="text-cyan-400">VOCAB MODULE</span>   ▓▓▓▓▓▓▓▓░░ <span className="text-green-400">200 WDS</span>  ║</p>
-            <p>║ <span className="text-yellow-400">SAFETY SYS</span>    ▓▓▓▓▓▓▓▓▓▓ <span className="text-green-400">ACTIVE</span>  ║</p>
-            <p>╚══════════════════════════════════════╝</p>
+          <div className="space-y-2 text-[var(--nle-muted)] text-xs sm:text-sm whitespace-nowrap">
+            <p>╔════════════════════════════════╗</p>
+            <p>║ <span className="text-blue-400">RSVP ENGINE</span>  ▓▓▓▓▓▓▓░░ <span className="text-green-400">ONLINE</span> ║</p>
+            <p>║ <span className="text-purple-400">THETA WAVES</span>  ▓▓▓▓▓▓▓░░ <span className="text-green-400">6 Hz</span>   ║</p>
+            <p>║ <span className="text-cyan-400">VOCAB MODULE</span> ▓▓▓▓▓▓▓░░ <span className="text-green-400">200WDS</span> ║</p>
+            <p>║ <span className="text-yellow-400">SAFETY SYS</span>   ▓▓▓▓▓▓▓▓▓ <span className="text-green-400">ACTIVE</span> ║</p>
+            <p>╚════════════════════════════════╝</p>
           </div>
           {wordsLearned > 0 && (
             <p className="mt-3 text-green-400 text-xs">

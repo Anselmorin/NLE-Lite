@@ -215,9 +215,16 @@ export default function DemoPage() {
 
       {/* PHASE: Encoding */}
       {phase === "encoding" && currentWordIdx < demoWords.length && (
-        <div className="text-center relative z-10">
-          {/* Progress dots */}
-          <div className="flex gap-3 justify-center mb-8">
+        <div className="fixed inset-0 bg-[#0a0a0f] flex items-center justify-center z-50">
+          {/* Giant faint peripheral emoji */}
+          {SPANISH_EMOJI[demoWords[currentWordIdx].spanish] && (
+            <div className="absolute text-[240px] opacity-10 blur-[3px] select-none pointer-events-none transition-all duration-500">
+              {SPANISH_EMOJI[demoWords[currentWordIdx].spanish]}
+            </div>
+          )}
+
+          {/* Progress dots — top */}
+          <div className="absolute top-8 flex gap-3 justify-center">
             {demoWords.map((_, i) => (
               <div
                 key={i}
@@ -230,39 +237,21 @@ export default function DemoPage() {
             ))}
           </div>
 
-          {/* Peripheral emoji */}
-          {SPANISH_EMOJI[demoWords[currentWordIdx].spanish] && (
-            <div className="text-8xl mb-6 opacity-30 blur-[1px] transition-opacity duration-300">
-              {SPANISH_EMOJI[demoWords[currentWordIdx].spanish]}
-            </div>
-          )}
-
-          {/* Word display */}
-          <div className="min-h-[120px] flex flex-col items-center justify-center">
+          {/* Single word display */}
+          <div className="relative z-10 text-center">
             {displayState === "spanish" && (
-              <div className="animate-in fade-in duration-300">
-                <p className="text-5xl font-bold text-blue-400">{demoWords[currentWordIdx].spanish}</p>
-                <p className="text-xs text-[var(--nle-muted)] mt-2 tracking-widest">ESPAÑOL</p>
-              </div>
+              <p className="text-6xl font-bold text-blue-400">{demoWords[currentWordIdx].spanish}</p>
             )}
             {displayState === "english" && (
-              <div className="animate-in fade-in duration-300">
-                <p className="text-5xl font-bold text-green-400">{demoWords[currentWordIdx].english}</p>
-                <p className="text-xs text-[var(--nle-muted)] mt-2 tracking-widest">ENGLISH</p>
-              </div>
+              <p className="text-6xl font-bold text-green-400">{demoWords[currentWordIdx].english}</p>
             )}
             {displayState === "both" && (
-              <div className="animate-in fade-in duration-300">
-                <p className="text-4xl font-bold text-purple-400">
-                  {demoWords[currentWordIdx].spanish} = {demoWords[currentWordIdx].english}
-                </p>
-                <p className="text-xs text-[var(--nle-muted)] mt-2 tracking-widest">ENCODED ✓</p>
-              </div>
+              <p className="text-5xl font-bold text-purple-400">{demoWords[currentWordIdx].english}</p>
             )}
           </div>
 
-          {/* Word counter */}
-          <p className="text-xs text-[var(--nle-muted)] mt-8">
+          {/* Word counter — bottom */}
+          <p className="absolute bottom-8 text-xs text-[var(--nle-muted)]">
             {currentWordIdx + 1} / {demoWords.length}
           </p>
         </div>

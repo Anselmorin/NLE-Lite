@@ -66,6 +66,13 @@ export default function Home() {
         </Link>
 
         {/* Quick links */}
+        <Link
+          href="/demo"
+          className="inline-block mt-6 text-sm px-6 py-3 border border-purple-500/30 rounded-lg text-purple-400 hover:bg-purple-500/10 transition-all font-medium tracking-wider"
+        >
+          ⚡ QUICK DEMO — 60 seconds
+        </Link>
+
         <div className="flex gap-6 justify-center mt-8 text-sm text-[var(--nle-muted)]">
           <Link href="/dashboard" className="hover:text-blue-400 transition-colors">Dashboard</Link>
           <Link href="/about" className="hover:text-blue-400 transition-colors">How it works</Link>

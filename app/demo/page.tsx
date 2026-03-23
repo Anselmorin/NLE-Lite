@@ -319,8 +319,8 @@ export default function DemoPage() {
              score >= 3 ? "Good recall. One more pass would lock it in." :
              "Try again — repetition strengthens the pathways."}
           </p>
-          <p className="text-xs text-[var(--nle-muted)] mb-8">
-            {score >= 3 ? "That was ~15 seconds of encoding." : "Neural pathways need repetition to solidify."}
+          <p className="text-sm text-[var(--nle-muted)] mb-8">
+            Remember, that was <span className="text-white font-semibold">only 15 seconds</span> of encoding.
           </p>
 
           <div className="flex gap-3 justify-center">

@@ -40,21 +40,31 @@ export default function Home() {
         </p>
 
         {/* Encoding visual */}
-        <div className="panel border-glow p-6 mb-10 text-left font-mono text-sm max-w-md mx-auto overflow-hidden">
-          <div className="flex items-center gap-2 mb-3">
+        <div className="panel border-glow p-5 mb-10 max-w-sm mx-auto">
+          <div className="flex items-center gap-2 mb-4">
             <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-            <span className="text-green-400 text-xs">SYSTEM READY</span>
+            <span className="text-green-400 text-xs font-mono tracking-wider">SYSTEM READY</span>
           </div>
-          <div className="space-y-2 text-[var(--nle-muted)] text-xs sm:text-sm whitespace-nowrap">
-            <p>╔════════════════════════════════╗</p>
-            <p>║ <span className="text-blue-400">RSVP ENGINE</span>  ▓▓▓▓▓▓▓░░ <span className="text-green-400">ONLINE</span> ║</p>
-            <p>║ <span className="text-purple-400">THETA WAVES</span>  ▓▓▓▓▓▓▓░░ <span className="text-green-400">6 Hz</span>   ║</p>
-            <p>║ <span className="text-cyan-400">VOCAB MODULE</span> ▓▓▓▓▓▓▓░░ <span className="text-green-400">200WDS</span> ║</p>
-            <p>║ <span className="text-yellow-400">SAFETY SYS</span>   ▓▓▓▓▓▓▓▓▓ <span className="text-green-400">ACTIVE</span> ║</p>
-            <p>╚════════════════════════════════╝</p>
+          <div className="space-y-3">
+            {[
+              { label: "RSVP ENGINE", color: "blue", pct: 70, status: "ONLINE", statusColor: "green" },
+              { label: "THETA WAVES", color: "purple", pct: 70, status: "6 Hz", statusColor: "green" },
+              { label: "VOCAB MODULE", color: "cyan", pct: 70, status: "200 WDS", statusColor: "green" },
+              { label: "SAFETY SYS", color: "yellow", pct: 100, status: "ACTIVE", statusColor: "green" },
+            ].map((item) => (
+              <div key={item.label}>
+                <div className="flex justify-between items-center mb-1">
+                  <span className={`text-xs font-mono text-${item.color}-400`}>{item.label}</span>
+                  <span className={`text-xs font-mono text-${item.statusColor}-400`}>{item.status}</span>
+                </div>
+                <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                  <div className={`h-full bg-${item.color}-400/60 rounded-full`} style={{ width: `${item.pct}%` }} />
+                </div>
+              </div>
+            ))}
           </div>
           {wordsLearned > 0 && (
-            <p className="mt-3 text-green-400 text-xs">
+            <p className="mt-4 text-green-400 text-xs font-mono">
               ► {wordsLearned} words encoded to memory
             </p>
           )}
